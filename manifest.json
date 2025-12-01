@@ -1,9 +1,9 @@
 {
-  "id": "fail-notification",
   "display_name": "Fail Notification",
   "author": "RealSubstantiality",
-  "version": "1.0.7",
-  "js": "index.v107.js",
-  "loading_order": 100,
-  "generate_interceptor": "failDingIntercept"
+  "version": "1.1.0",
+  "js": "index.js",
+  "auto_update": true,
+  "generate_interceptor": "failNotificationIntercept",
+  "homePage": "https://docs.sillytavern.app/for-contributors/writing-extensions/"
 }
