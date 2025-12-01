@@ -11,8 +11,8 @@ https://github.com/RealSubstantiality/fail-notification.git
 安装后在扩展列表里启用；首次任意点击页面以解锁浏览器音频。
 
 ## 2025.12.1更新说明
-在扩展管理页中增加设置面板
-增加Android设备的振动提示功能
+在扩展管理页中增加设置面板。
+增加Android设备的振动提示功能。
 
 ## 自定义声音
 将 `fail.mp3` 替换为你自己的音效文件（同名覆盖）。
