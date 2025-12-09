@@ -1,8 +1,20 @@
 // Fail Notification v1.1.2
 // 在 1.1.0 基础上：新增“振动时长/次数”设置 + 更稳的持久化 + 测试按钮样式；其余逻辑不变。
+// 本版补丁：将 text/html/Cloudflare 错误页判为失败（即使状态码为 200）。
 
 (() => {
   const MODULE = 'fail_notification';
+
+  // ---------- 辅助：识别“坏内容类型/HTML 错误页” ----------
+  function isBadCT(ct = '') {
+    ct = String(ct).toLowerCase();
+    return ct.includes('text/html');
+  }
+  function looksLikeHtml(s = '') {
+    if (!s) return false;
+    const head = s.slice(0, 256).toLowerCase().trim();
+    return head.startsWith('<!doctype html') || head.startsWith('<html') || head.includes('cloudflare');
+  }
 
   // ---------- ST 上下文 & 持久化 ----------
   const ctx = (globalThis.SillyTavern?.getContext?.() ?? globalThis);
@@ -17,8 +29,8 @@
     vibrate: false,
     volume: 0.9,              // 0~1
     soundUrl: './fail.mp3',
-    vibMs: 180,               // 新增：单次振动时长
-    vibRepeat: 1              // 新增：振动次数（1~5）
+    vibMs: 180,               // 单次振动时长
+    vibRepeat: 1              // 振动次数（1~5）
   });
 
   function getSettings() {
@@ -44,7 +56,6 @@
       const res = await fetch(url, { cache: 'no-store' });
       const arr = await res.arrayBuffer();
       ensureAudio();
-      // 兼容旧实现：有的浏览器 decodeAudioData 返回 Promise，有的用回调
       failBuffer = await new Promise((ok, err) => {
         try {
           const ret = audioCtx.decodeAudioData(arr, ok, err);
@@ -140,7 +151,7 @@
   const isGen = (url, method) =>
     method === 'POST' && !GEN_DENY.some(r => r.test(url)) && GEN_ALLOW.some(r => r.test(url));
 
-  if (typeof window.fetch === 'function' && !window.fetch.__fn112) {
+  if (typeof window.fetch === 'function' && !window.fetch.__fn112a) {
     const orig = window.fetch;
     window.fetch = async (...args) => {
       const [input, init] = args;
@@ -153,7 +164,10 @@
         const res = await orig(...args);
         if (!watch) return res;
 
-        const ok = !!res.ok;
+        // 修正“伪成功”：text/html 视作失败
+        const ct = res.headers?.get?.('content-type') || '';
+        let ok2 = !!res.ok && !isBadCT(ct);
+
         try {
           const clone = res.clone();
           if (clone.body?.getReader) {
@@ -166,13 +180,16 @@
                   if (value?.length) markContent();
                 }
               } catch {}
-              finally { endRound(ok); }
+              finally { endRound(ok2); }
             })();
           } else {
-            clone.text().then(t => { if (t?.trim()) markContent(); endRound(ok); })
-                        .catch(() => endRound(ok));
+            clone.text().then(t => {
+              if (t?.trim()) markContent();
+              if (ok2 && looksLikeHtml(t)) ok2 = false;
+              endRound(ok2);
+            }).catch(() => endRound(ok2));
           }
-        } catch { endRound(ok); }
+        } catch { endRound(ok2); }
 
         return res;
       } catch (err) {
@@ -181,11 +198,11 @@
         throw err;
       }
     };
-    window.fetch.__fn112 = true;
+    window.fetch.__fn112a = true;
   }
 
   const XHR = window.XMLHttpRequest;
-  if (XHR && !XHR.prototype.__fn112) {
+  if (XHR && !XHR.prototype.__fn112a) {
     const _open = XHR.prototype.open;
     const _send = XHR.prototype.send;
     XHR.prototype.open = function (method, url, ...rest) {
@@ -202,7 +219,13 @@
             const ok = this.status >= 200 && this.status < 400;
             const txt = this.responseText || '';
             if (txt?.trim()) markContent();
-            endRound(ok);
+
+            // 修正“伪成功”
+            const ct = (this.getResponseHeader && this.getResponseHeader('content-type')) || '';
+            let ok2 = ok && !isBadCT(ct);
+            if (ok2 && looksLikeHtml(txt)) ok2 = false;
+
+            endRound(ok2);
           });
           this.addEventListener('error',   () => endRound(false));
           this.addEventListener('timeout', () => endRound(false));
@@ -211,7 +234,7 @@
       } catch {}
       return _send.apply(this, args);
     };
-    XHR.prototype.__fn112 = true;
+    XHR.prototype.__fn112a = true;
   }
 
   // ---------- 扩展管理页入口 ----------
@@ -324,8 +347,8 @@
     content.append(makeCheckbox('失败时播放声音', 'sound'));
     content.append(makeRange('音量', 'volume', 0, 1, 0.01));
     content.append(makeCheckbox('失败时振动（Android设备）', 'vibrate'));
-    content.append(makeNumber('振动时长 (ms)', 'vibMs', 50, 2000, 10));   // 新增
-    content.append(makeNumber('振动次数', 'vibRepeat', 1, 5, 1));         // 新增
+    content.append(makeNumber('振动时长 (ms)', 'vibMs', 50, 2000, 10));
+    content.append(makeNumber('振动次数', 'vibRepeat', 1, 5, 1));
     content.append(makeText('声音文件路径', 'soundUrl', './fail.mp3'));
     content.append(makeTestButton());
 
