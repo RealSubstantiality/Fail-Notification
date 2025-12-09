@@ -374,6 +374,64 @@ async function sendNotification(title, body) {
     XHR.prototype.__fn120 = true;
   }
 
+// —— 全局错误兜底：仅在“武装窗口”内响应，抓 429/容量不足等 Promise 拒绝 ——
+// 建议放在 XHR hook 之后 / 扩展管理页之前 / IIFE 结束前任一处
+if (!window.__fnGlobalErrHook) {
+  window.__fnGlobalErrHook = true;
+
+  function errToString(e) {
+    try {
+      if (!e) return '';
+      if (typeof e === 'string') return e;
+      if (e.message) return String(e.message);
+      if (e.reason && typeof e.reason === 'string') return e.reason;
+      return JSON.stringify(e);
+    } catch { return ''; }
+  }
+
+  function looksLikeRateLimit(s) {
+    s = (s || '').toLowerCase();
+    return s.includes('too many requests')
+        || s.includes('"code":429') || s.includes(' 429')
+        || s.includes('no capacity available')
+        || s.includes('rate limit') || s.includes('overloaded')
+        || s.includes('capacity');
+  }
+
+  let lastGlobalErrAt = 0;
+  function triggerFailIfArmed(reasonStr) {
+    if (typeof isArmed !== 'function' || !isArmed()) return; // 只在武装时
+    const now = Date.now();
+    if (now - lastGlobalErrAt < 400) return; // 防抖
+    lastGlobalErrAt = now;
+
+    if (typeof roundActive !== 'undefined' && roundActive) {
+      try { endRound(false); } catch {}
+    } else {
+      try { S.sound && beep(); } catch {}
+      try { S.vibrate && vibrate(); } catch {}
+      try { S.notify && sendNotification(S.notifyTitle, reasonStr || S.notifyBody); } catch {}
+      try { S.titleBlink && blinkTitle('[生成失败] ' + document.title, S.titleBlinkTimes, S.titleBlinkGap); } catch {}
+    }
+  }
+
+  // Promise 未捕获拒绝（常见：429/容量不足直接 reject）
+  window.addEventListener('unhandledrejection', (ev) => {
+    try {
+      const s = errToString(ev?.reason ?? ev);
+      if (looksLikeRateLimit(s)) triggerFailIfArmed(s);
+    } catch {}
+  });
+
+  // 运行时错误兜底（偶尔也会走到这里）
+  window.addEventListener('error', (ev) => {
+    try {
+      const s = errToString(ev?.error ?? ev?.message ?? '');
+      if (looksLikeRateLimit(s)) triggerFailIfArmed(s);
+    } catch {}
+  });
+}
+
   // ---------- 扩展管理页 ----------
   function makeCheckbox(label, key) {
     const wrap = document.createElement('label');
