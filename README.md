@@ -6,7 +6,7 @@ SillyTavern自带回复成功后播放提示音功能，但是生成失败后没
 ## 安装
 SillyTavern → Extensions → Manage → Install from Git  
 粘贴：
-https://github.com/RealSubstantiality/fail-notification.git
+https://github.com/RealSubstantiality/Fail-Notification
 
 安装后在扩展列表里启用；首次任意点击页面以解锁浏览器音频。
 
