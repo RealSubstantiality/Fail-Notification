@@ -12,7 +12,9 @@ https://github.com/RealSubstantiality/Fail-Notification
 
 ## 2025.12.9更新说明
 可以调用Windows/iOS端的系统通知，在iOS设备替代振动提示。
+
 iOS设备需将SillyTavern作为PWA应用安装，即在Safari中访问SillyTavern，并“添加到主屏幕”。
+
 若成功作为PWA安装，可以注意到此时打开SillyTavern没有Safari的地址栏。
 
 ## 2025.12.1更新说明
