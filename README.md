@@ -1,7 +1,7 @@
 # Fail Notification — SillyTavern 扩展
 SillyTavern自带回复成功后播放提示音功能，但是生成失败后没有提示。
 
-本扩展可以在生成失败/空回复时播放自定义提示音（成功时不响）。
+本扩展可以在生成失败/空回复时播放自定义提示音（成功时不响），在电脑端/Android端有效。
 
 ## 安装
 SillyTavern → Extensions → Manage → Install from Git  
@@ -19,11 +19,8 @@ https://github.com/RealSubstantiality/fail-notification.git
 
 提供SillyTavern自带的回复成功音效（fail1.mp3）作为备选。
 
-## 兼容性（AI说的，我也看不懂）
-- 不依赖事件总线；通过 `generate_interceptor` + fetch/XHR 勾子工作  
-
 ## 更新
-从 Git 重新安装或在扩展管理里点 Update。
+从 Git 重新安装或在扩展管理里点击 Update。
 
 ## License
 MIT
