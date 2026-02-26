@@ -6,7 +6,7 @@ SillyTavern自带回复成功后播放提示音功能，但是生成失败后没
 ## 安装
 SillyTavern → Extensions → Manage → Install from Git  
 粘贴：
-[https://github.com/RealSubstantiality/Fail-Notification](https://github.com/RealSubstantiality/SillyTavern-Response-Monitor)
+[https://github.com/RealSubstantiality/SillyTavern-Response-Monitor](https://github.com/RealSubstantiality/SillyTavern-Response-Monitor)
 
 安装后在扩展列表里启用；首次任意点击页面以解锁浏览器音频。
 
@@ -26,9 +26,7 @@ iOS设备需将SillyTavern作为PWA应用安装，即在Safari中访问SillyTave
 增加Android设备的振动提示功能。
 
 ## 自定义声音
-将 `fail.mp3` 替换为你自己的音效文件（同名覆盖）。
-
-提供SillyTavern自带的回复成功音效（fail1.mp3）作为备选。
+将 `fail.mp3` 或 `success.mp3` 替换为你自己的音效文件（同名覆盖）。
 
 ## 更新
 从 Git 重新安装或在扩展管理里点击 Update。
