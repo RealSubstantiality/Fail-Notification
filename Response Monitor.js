@@ -695,7 +695,7 @@
     const header = document.createElement('div');
     header.className = 'inline-drawer-toggle inline-drawer-header';
     const title = document.createElement('b');
-    title.textContent = 'Response Monitor';
+    title.textContent = '响应监听助手';
     const icon = document.createElement('div');
     icon.classList.add('inline-drawer-icon','fa-solid','fa-circle-chevron-down','down');
     header.append(title, icon);
@@ -796,4 +796,5 @@
     });
     mo.observe(document.documentElement, { childList:true, subtree:true });
   }
+
 })();
